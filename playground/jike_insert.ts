@@ -1,16 +1,8 @@
 import { BaseClient } from '@lark-base-open/node-sdk';
-import { config } from '../config';
-
-interface IRecord {
-	record_id: string;
-	fields: Record<string, any>
-}
-
-
-
-
+import { uploadFiles } from '../uitls/upload';
 
 export async function jikeInsert(tableData, config ) {
+
 	const APP_TOKEN = config.APP_TOKEN
 	const PERSONAL_BASE_TOKEN = config.PERSONAL_BASE_TOKEN
 	const TABLEID = config.TABLEID
@@ -19,7 +11,7 @@ export async function jikeInsert(tableData, config ) {
 		appToken: APP_TOKEN,
 		personalBaseToken: PERSONAL_BASE_TOKEN,
 	});
-
+	
 	// obtain fields info
 	const res = await client.base.appTableField.list({
 		params: {
@@ -31,7 +23,7 @@ export async function jikeInsert(tableData, config ) {
 	})
 
 	const fields = res?.data?.items || [];
-	const textFieldNames = fields.filter(field => field.ui_type === 'Text').map(field => field.field_name);
+	// const textFieldNames = fields.filter(field => field.ui_type === 'Text').map(field => field.field_name);
 
 
 	for (let i = 0; i < tableData.length; i++) {
@@ -39,7 +31,21 @@ export async function jikeInsert(tableData, config ) {
 		// 	await waitTime(1000)
 		// }
 		const newFields = {}
-		textFieldNames.forEach(key => newFields[key] = String(tableData[i][key])  )
+		for (let j = 0; j < fields.length; j++) {
+			const field = fields[j]
+			const uiType = field.ui_type
+			const key = field.field_name
+			const values = tableData[i][key]
+			if ( uiType === 'Text') {
+				newFields[key] = String( values || '')
+			} else if ( uiType === 'Attachment' && values) {
+				const valuesSplits = values.split(',').filter(item => item)
+				const fileTokens = await uploadFiles(client, valuesSplits)
+				newFields[key] = [
+					...fileTokens
+				]
+			}
+		}
 		try {
 			await client.base.appTableRecord.create({
 				path: {

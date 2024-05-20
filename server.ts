@@ -16,8 +16,13 @@ app.get('/search_and_replace', async (req, res) => {
 
 app.post('/jike_insert', async (req, res) => {
 	const { tableData, config } = req.body || {}
-  await jikeInsert(tableData || [], config);
-  res.send('success!!!')
+	try {
+		await jikeInsert(tableData || [], config);
+		res.send('success!!!')
+	} catch (error) {
+		console.log('error-----', error)
+		res.send('fail!!!')
+	}
 });
 
 app.get('/', async (req, res) => {
