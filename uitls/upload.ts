@@ -3,11 +3,12 @@ import path from 'path'
 import fs from 'fs'
 
 export async function uploadFile(client, url) {
-	const filePath = path.resolve(__dirname, `../cache_files/${client.appToken}.png`)
-	await fetchFileStream(url, filePath);
+	let filePath = path.resolve(__dirname, `../cache_files/${client.appToken}`)
+	const [, saveFilePath, expand] = await fetchFileStream(url, filePath);
+	filePath = saveFilePath;
 	const data = await client.drive.media.uploadAll({
 		data: {
-			file_name: 'file.png', // 文件名
+			file_name: `file${expand}`, // 文件名
 			parent_type: 'bitable_file', // 附件为图片传 'bitable_image'，为文件传 'bitable_file'
 			parent_node: client.appToken, // 填写 appToken
 			size: fs.statSync(filePath).size, // 文件大小

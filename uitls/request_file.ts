@@ -1,16 +1,29 @@
 const http = require('https'); // for HTTP URLs
 
 const fs = require('fs');
-async function fetchFileStream(url, filename) {
-  const [response, size ]= await makeRequest(url);
-	const fileStream = fs.createWriteStream(filename);  
+/**
+ * 根据url添加文件扩展
+ * @param url 
+ * @param filename 
+ * @returns 
+ */
+async function fetchFileStream(url, filename): Promise<any> {
+  const [response, contentType ]= await makeRequest(url);
+	console.log('MIME Type from Response:', contentType);
+	const fixMap = {
+		image: '.png',
+		video: '.mp4'
+	}
+	const expand = fixMap[contentType.split('/')[0]] || '.png'
+	const filePath = `${filename}${expand}`
+	const fileStream = fs.createWriteStream(filePath);  
   response.pipe(fileStream);
   return  new Promise( (resolve) => {
 		fileStream.on('finish', () => {  
-			console.log('文件写入完成'); 
+		
 		});  
 		fileStream.on('close', () => {  
-			resolve([fileStream, size])
+			resolve([fileStream, filePath, expand])
 		});  
 	})
 }
@@ -22,15 +35,10 @@ async function makeRequest(url): Promise<any> {
         reject(new Error(`Error fetching file: ${response.statusCode}`));
         return;
       }
+			const contentType = response.headers['content-type'];  
+			console.log('MIME Type from Headers:', contentType);  
 
-			const contentLength = response.headers['content-length'];  
-			if (contentLength) {  
-				console.log(`文件大小: ${contentLength} 字节`);  
-			} else {  
-				console.log('Content-Length 头部未提供，无法确定文件大小');  
-			}  
-
-      resolve([response, contentLength]);
+      resolve([response, contentType]);
     });
 
     request.on('error', (error) => {

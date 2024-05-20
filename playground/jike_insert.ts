@@ -11,7 +11,7 @@ export async function jikeInsert(tableData, config ) {
 		appToken: APP_TOKEN,
 		personalBaseToken: PERSONAL_BASE_TOKEN,
 	});
-	
+
 	// obtain fields info
 	const res = await client.base.appTableField.list({
 		params: {
@@ -23,13 +23,10 @@ export async function jikeInsert(tableData, config ) {
 	})
 
 	const fields = res?.data?.items || [];
-	// const textFieldNames = fields.filter(field => field.ui_type === 'Text').map(field => field.field_name);
 
 
 	for (let i = 0; i < tableData.length; i++) {
-		// if (i % 10 === 0) { 
-		// 	await waitTime(1000)
-		// }
+
 		const newFields = {}
 		for (let j = 0; j < fields.length; j++) {
 			const field = fields[j]
@@ -44,6 +41,8 @@ export async function jikeInsert(tableData, config ) {
 				newFields[key] = [
 					...fileTokens
 				]
+			} else if (uiType === 'DateTime' && key === '日期' && tableData[i]['date']) {
+				newFields[key] = new Date(`${tableData[i]['date']} 00:00:00`).getTime()
 			}
 		}
 		try {
