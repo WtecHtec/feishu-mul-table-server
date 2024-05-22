@@ -4,7 +4,7 @@ import { jikeInsert } from './playground/jike_insert';
 const bodyParser = require('body-parser');
 const cors = require('cors'); 
 const app = express()
-const port = 3000
+const port = process.env.PORT || 3000
 app.use(bodyParser.json({ limit: '500mb', extended: true }))
 app.use(cors()); // 这将允许所有源进行跨域访问
 // http trigger
