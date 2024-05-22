@@ -1,5 +1,5 @@
 import { BaseClient } from '@lark-base-open/node-sdk';
-import { uploadFiles } from '../uitls/upload';
+import { uploadFilesByBuffer } from '../uitls/upload';
 
 export async function jikeInsert(tableData, config ) {
 
@@ -25,6 +25,7 @@ export async function jikeInsert(tableData, config ) {
 	const fields = res?.data?.items || [];
 
 
+	const records: any[] = [];
 	for (let i = 0; i < tableData.length; i++) {
 
 		const newFields = {}
@@ -37,7 +38,7 @@ export async function jikeInsert(tableData, config ) {
 				newFields[key] = String( values || '')
 			} else if ( uiType === 'Attachment' && values) {
 				const valuesSplits = values.split(',').filter(item => item)
-				const fileTokens = await uploadFiles(client, valuesSplits)
+				const fileTokens = await uploadFilesByBuffer(client, valuesSplits)
 				newFields[key] = [
 					...fileTokens
 				]
@@ -45,6 +46,7 @@ export async function jikeInsert(tableData, config ) {
 				newFields[key] = new Date(`${tableData[i]['date']} 00:00:00`).getTime()
 			}
 		}
+		records.push({ ...newFields });
 		try {
 			await client.base.appTableRecord.create({
 				path: {
@@ -60,4 +62,17 @@ export async function jikeInsert(tableData, config ) {
 			console.log('error-----', error)
 		}
 	}
+
+	// try {
+	// 	await client.base.appTableRecord.batchCreate({
+	// 		path: {
+	// 			table_id: TABLEID
+	// 		},
+	// 		data: {
+	// 			records: [...records]
+	// 		}
+	// 	})
+	// } catch (error) {
+	// 	console.log('error-----', error)
+	// }
 }

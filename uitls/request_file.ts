@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const http = require('https'); // for HTTP URLs
 
 const fs = require('fs');
@@ -48,5 +50,19 @@ async function makeRequest(url): Promise<any> {
 }
 
 
+const axiosFileBuffer = async (url) => {
+	const imageResponse = await axios.get(url, { responseType: 'arraybuffer' });
+	const imageBuffer = Buffer.from(imageResponse.data, 'binary');
+	const contentType = imageResponse.headers['content-type']
+	let expand = '.png'
+	if (contentType) {
+		const cts = contentType.split('/')
+		expand = `.${cts[cts.length - 1]}`
+	}
+	return [imageBuffer,  expand]
+}
 
-export { fetchFileStream }
+
+
+
+export { fetchFileStream, axiosFileBuffer }
